@@ -10,8 +10,13 @@ def main(playwright):
     records = []
     seen_urls = set()
     chrome = playwright.chromium
-    browser = chrome.launch(headless=False, slow_mo=100)
-    page = browser.new_page()
+    browser = chrome.launch(headless=True, slow_mo=100)
+    context = browser.new_context(
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        locale="en-US"
+    )
+    page = context.new_page()
+    #page = browser.new_page()
 
     for page_num in range(1, MAX_PAGES + 1):
         search_page_url = SEARCH_URL.replace("page=1", f"page={page_num}")
