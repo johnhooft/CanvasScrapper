@@ -2,14 +2,17 @@
 ## Part B / C (Stagehand & Next.js)
 
 # Setup:
-Clone and Install
+**Clone and Install**
 ```
 git clone https://github.com/johnhooft/CanvasScrapper
 cd stagehand-bbb-scraper
 npm install
 ```
 
-Setup .env
+**Setup .env:**
+
+Run this command and Input API Keys:
+
 ` cp env.example .env.local `
 
 **To Run the Server:**
@@ -40,7 +43,9 @@ https://www.bbb.org/search?filter_category=60548-100&filter_category=60142-000&f
 
 ## API Routes:
 `POST /api/scrape` - Runs scraping job.
+
 `POST /api/submit-business` - Adds Business data to Supabase Table if unique.
+
 `POST /api/delete` - Deletes all businesses from Supabase Table.
 
 ## Scripts:

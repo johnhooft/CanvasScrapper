@@ -1,4 +1,4 @@
-# CanvasScrapper
+# BBB Medical Billing Data Scraper
 
 Author: John Hooft Toomey
 

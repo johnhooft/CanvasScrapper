@@ -5,7 +5,6 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 export async function POST(req: NextRequest) {
     const business = await req.json();
-    //console.log(business)
     // Check for duplicate
     const { data: existing, error: findErr } = await supabase
         .from('businesses')
