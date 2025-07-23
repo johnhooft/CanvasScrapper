@@ -19,5 +19,7 @@ playwright install
 python main.py
 
 ## Issues Encountered:
-- Running the script multiple times results in different length csv files
-- Required Extracted data was not available in one location. Solution was a combination of parsing the schema, the DOM, and the raw JS.
+- Running the script multiple times results in different length csv files.
+- Required Extracted data was not available in one location. Solution was a combination of:
+- - JavaScript Variable Extraction via the `window.__PRELOADED_STATE__`
+- - JSON-LD Schema Parsing by targeting the embedded `application/ld+json` script tag.
