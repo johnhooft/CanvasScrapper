@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    console.log(result.data.LLM)
     // Calls the scraper script, passes in the Search URL, and the extract Model (LLM: <Boolean>)
     const data = await runScraper(result.data.url, result.data.LLM);
     return NextResponse.json(data);

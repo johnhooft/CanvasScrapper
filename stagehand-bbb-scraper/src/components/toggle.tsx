@@ -3,10 +3,16 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 
-export default function Toggle({ setMode }: { setMode: React.Dispatch<React.SetStateAction<"LLM" | "Explicit">> }) {
+interface ToggleProps {
+    setMode: React.Dispatch<React.SetStateAction<"LLM" | "Explicit">>;
+    disabled?: boolean;
+  }
+
+  export default function Toggle({ setMode, disabled = false }: ToggleProps) {
   const [mode, setLocalMode] = useState<"LLM" | "Explicit">("LLM")
 
   const handleModeChange = (newMode: "LLM" | "Explicit") => {
+    if (disabled || newMode === mode) return;
     setLocalMode(newMode);
     setMode(newMode);
   };
@@ -21,25 +27,30 @@ export default function Toggle({ setMode }: { setMode: React.Dispatch<React.SetS
           </p>
         </div>
 
-        <div className="relative inline-flex bg-none border-2 border-white rounded-lg p-1">
-          <button
-            onClick={() => handleModeChange("LLM")}
-            className={cn(
-              "relative px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out",
-              mode === "LLM" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500= hover:text-gray-100",
-            )}
-          >
-            LLM
-          </button>
-          <button
-            onClick={() => handleModeChange("Explicit")}
-            className={cn(
-              "relative px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out",
-              mode === "Explicit" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-100",
-            )}
-          >
-            Explicit
-          </button>
+        <div className="w-full flex justify-center py-2">
+            <div className={cn(
+                "relative inline-flex border-2 border-white rounded-lg p-1",
+                disabled && "opacity-50 cursor-not-allowed pointer-events-none"
+            )}>
+            <button
+                onClick={() => handleModeChange("LLM")}
+                className={cn(
+                "relative px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out",
+                mode === "LLM" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500= hover:text-gray-100",
+                )}
+            >
+                LLM
+            </button>
+            <button
+                onClick={() => handleModeChange("Explicit")}
+                className={cn(
+                "relative px-6 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out",
+                mode === "Explicit" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-100",
+                )}
+            >
+                Explicit
+            </button>
+            </div>
         </div>
 
         <div className="text-center max-w-md">
