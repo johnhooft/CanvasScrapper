@@ -14,6 +14,10 @@ type BusinessData = {
   accreditation_status: boolean | null;
 };
 
+function delayRandom(minMs: number, maxMs: number): Promise<void> {
+  const ms = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 /**
  * This function navigates to a the search URL, waits for the page to load and then extracts all the href attributes from links that match the specified selector.
@@ -245,6 +249,7 @@ export async function runScraper(searchUrl: string = SEARCH_URL, LLM: boolean): 
 
     // Loop through number of pages defined
     for (let pageNum = 1; pageNum <= MAX_PAGES; pageNum++) {
+      await delayRandom(1000, 3000);
       const pageUrl = searchUrl.replace("page=1", `page=${pageNum}`);
 
       // Get all Business profile URLs on Search page
@@ -259,8 +264,14 @@ export async function runScraper(searchUrl: string = SEARCH_URL, LLM: boolean): 
           let data;
 
           // Extract business data
-          if (LLM) { data = await extractBusinessDataLLM(page, fullUrl);} 
-          else { data = await extractBusinessDataExplicit(page, fullUrl);}
+          if (LLM) { 
+            data = await extractBusinessDataLLM(page, fullUrl);
+            await delayRandom(1000, 2000);
+          } 
+          else { 
+            data = await extractBusinessDataExplicit(page, fullUrl);
+            await delayRandom(1000, 2000);
+          }
           records.push(data);
           
           // push data to Supabase
