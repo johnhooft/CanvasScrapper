@@ -137,8 +137,8 @@ async function extractBusinessDataExplicit(page: Page, url: string): Promise<Bus
     phone = (jsonData.telephone && typeof jsonData.telephone === 'string') ? jsonData.telephone : null;
   }
 
-  console.log(`\nAccredited: ${accredited}, Principal: ${principalStr}, Domain: ${domain}`);
-  console.log(`Name: ${name}, Address: ${addressStr}, Phone: ${phone}\n`);
+  //console.log(`\nAccredited: ${accredited}, Principal: ${principalStr}, Domain: ${domain}`);
+  //console.log(`Name: ${name}, Address: ${addressStr}, Phone: ${phone}\n`);
 
   return {
     name,
@@ -203,8 +203,8 @@ async function extractBusinessDataLLM(page: Page, url: string): Promise<Business
 
   ({name, addressStr, phone} = extractResultsFromSchema)
   
-  console.log(`\nAccredited: ${accredited}, Principal: ${principalStr}, Domain: ${domain}`);
-  console.log(`Name: ${name}, Address: ${addressStr}, Phone: ${phone}\n`);
+  //console.log(`\nAccredited: ${accredited}, Principal: ${principalStr}, Domain: ${domain}`);
+  //console.log(`Name: ${name}, Address: ${addressStr}, Phone: ${phone}\n`);
 
   return {
     name,
@@ -218,17 +218,16 @@ async function extractBusinessDataLLM(page: Page, url: string): Promise<Business
 
 export async function runScraper(searchUrl: string = SEARCH_URL, LLM: boolean): Promise<BusinessData[]> {
   console.log(`llm: ${LLM}`)
-  // Initalize Stagehand object with Proxies enabled to bypass cloudflare
-  const stagehand = new Stagehand({
-    env: "BROWSERBASE",
+
+  const stagehandConfig = {
+    env: "BROWSERBASE" as const,
     apiKey: process.env.BROWSERBASE_API_KEY,
     projectId: process.env.BROWSERBASE_PROJECT_ID,
-    verbose: 1,
-    //logger: console.log,
+    verbose: 1 as const,
     disablePino: true,
     browserbaseSessionCreateParams: {
       projectId: process.env.BROWSERBASE_PROJECT_ID!,
-      proxies: true, /* Using Browserbase's Proxies */ 
+      proxies: true,
     },
     localBrowserLaunchOptions: {
       locale: "en-US",
@@ -238,62 +237,54 @@ export async function runScraper(searchUrl: string = SEARCH_URL, LLM: boolean): 
         'Referer': 'https://www.bbb.org/',
       }
     }
-  });
+  };
 
   const records: BusinessData[] = [];
   const seenUrls = new Set<string>();
 
-  try {
+  // Loop through number of pages defined
+  for (let pageNum = 1; pageNum <= MAX_PAGES; pageNum++) {
+    console.log(`new page: ${pageNum}`)
+    await delayRandom(1000, 3000);
+    const pageUrl = searchUrl.replace("page=1", `page=${pageNum}`);
+
+    const stagehand = new Stagehand(stagehandConfig);
     await stagehand.init();
     const page = stagehand.page;
+    try {
+      // await stagehand.init();
+      // const page = stagehand.page;
 
-    // Loop through number of pages defined
-    for (let pageNum = 1; pageNum <= MAX_PAGES; pageNum++) {
-      await delayRandom(1000, 3000);
-      const pageUrl = searchUrl.replace("page=1", `page=${pageNum}`);
-
-      // Get all Business profile URLs on Search page
       const businessUrls = await getSearchResults(page, pageUrl);
 
-      // Loop through each business on page and visit their profile
       for (const urlSuffix of businessUrls) {
         const fullUrl = `https://www.bbb.org${urlSuffix}`;
         if (seenUrls.has(fullUrl)) continue;
         seenUrls.add(fullUrl);
-        try {
-          let data;
 
-          // Extract business data
-          if (LLM) { 
-            data = await extractBusinessDataLLM(page, fullUrl);
-            await delayRandom(1000, 2000);
-          } 
-          else { 
-            data = await extractBusinessDataExplicit(page, fullUrl);
-            await delayRandom(1000, 2000);
-          }
+        try {
+
+          const data = LLM
+            ? await extractBusinessDataLLM(page, fullUrl)
+            : await extractBusinessDataExplicit(page, fullUrl);
+
+          await delayRandom(1000, 2000);
           records.push(data);
-          
-          // push data to Supabase
-          try {
-            const response = await fetch("http://localhost:3000/api/submit-business", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(data),
-            });
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-          } catch (error) {
-            console.error('Error:', error);
-          }
-        } catch (e) {
-          console.warn(`Failed to scrape ${fullUrl}:`, e);
+
+          await fetch("http://localhost:3000/api/submit-business", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+        } catch (err) {
+          console.warn(`Failed to scrape ${fullUrl}:`, err);
         }
       }
+    } catch (err) {
+      console.warn(`Failed to scrape search page ${pageUrl}:`, err);
+      await stagehand.close();
     }
-    return records;
-  } finally {
-    await stagehand.close();
   }
+
+  return records;
 }

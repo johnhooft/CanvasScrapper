@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const { data: existing, error: findErr } = await supabase
         .from('businesses')
         .select('id')
-        .eq('url', business.url)
+        .eq('phone', business.phone)
         .single();
 
     if (findErr && findErr.code !== 'PGRST116') {

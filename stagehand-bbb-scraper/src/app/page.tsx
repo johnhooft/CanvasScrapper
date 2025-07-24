@@ -50,8 +50,6 @@ export default function Home() {
       .subscribe();
       
     fetchInitial();
-
-    console.log(data)
   
     return () => {
       supabase.removeChannel(channel);
